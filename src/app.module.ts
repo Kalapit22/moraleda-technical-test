@@ -34,6 +34,8 @@ import * as Joi from 'joi';
           password:  configService.getOrThrow('DB_PASSWORD'),
           database: configService.getOrThrow('DB_DATABASE'),
           synchronize: true,
+          ssl:true
+          
         }),
         inject: [ConfigService]
       }
