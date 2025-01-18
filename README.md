@@ -1,99 +1,137 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Sistema de Gestión de Transferencias de Vehículos
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Este proyecto implementa un **CRUD** completo para la gestión de transferencias de vehículos en un **CMS vehicular**, cumpliendo con los requisitos de **roles**, **permisos** y **unidades organizativas**, de modo que cada usuario pueda acceder exclusivamente a los proyectos y unidades organizativas a los que pertenece. Se ha usado **NestJS** con una **arquitectura hexagonal** para mantener el **código limpio**, aplicar **principios SOLID** y aislar la lógica de negocio de la infraestructura.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Requisitos Principales
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+1. **Tecnologías**  
+   - **Nest.js** (TypeScript)  
+   - **PostgreSQL** con **TypeORM** (o Prisma)  
+   - **JWT** para autenticación  
+   - **Render** (plan Hobby) para despliegue  
 
-## Project setup
+2. **Entidades**  
+   - **Users (usuarios)**: Muchos a muchos con projects y organizational_units.  
+   - **Roles**: Muchos a muchos con permissions y users.  
+   - **Permissions**: Definen acciones como `view_transfers`, `create_transfers`, etc.  
+   - **Projects**: Uno a muchos con organizational_units.  
+   - **OrganizationalUnits**: Muchos a muchos con usuarios.  
+   - **Vehicles**: Identificados por su placa, servicio, fecha creación, etc.  
+   - **Transfers**: Cada transferencia pertenece a un vehículo, un cliente, un transmitente y está ligada a un proyecto y unidad organizativa.
 
-```bash
-$ pnpm install
-```
+3. **Seguridad y Validaciones**  
+   - **JWT** para la autenticación de usuarios  
+   - **Roles y Permisos** que controlan las acciones en el módulo de transferencias  
+   - **Filtrado** por proyecto y unidad organizativa para asegurar que el usuario solo vea/edite lo que le corresponde
 
-## Compile and run the project
+4. **CRUD de Transferencias**  
+   - **GET /transfers**: Retorna solo las transferencias que corresponden a la combinación de proyectos y unidades organizativas del usuario autenticado  
+   - **POST /transfers**: Crea una transferencia validando el acceso del usuario al `projectId` y `organizationalUnitId`  
+   - **PUT /transfers/:id**: Actualiza una transferencia, chequeando que el usuario mantenga los permisos y acceso a esas entidades  
+   - **DELETE /transfers/:id**: Permite eliminar una transferencia solo si el usuario pertenece a la misma unidad organizativa y posee permisos
 
-```bash
-# development
-$ pnpm run start
+---
 
-# watch mode
-$ pnpm run start:dev
+## Arquitectura Hexagonal y Principios SOLID
 
-# production mode
-$ pnpm run start:prod
-```
+Se adoptó un diseño con arquitectura **hexagonal** para desacoplar la lógica de negocio (dominio y aplicación) de los detalles de infraestructura (ORM, controladores, etc.). Esto se refleja en:
 
-## Run tests
+- **Entidades de Dominio**: Definen la estructura y reglas principales de las transferencias, proyectos, usuarios, etc.  
+- **Aplicación (Casos de Uso)**: Contiene los servicios que orquestan la lógica (crear, actualizar, eliminar). Se usan **DTOs** para la validación de datos de entrada.  
+- **Puertos (Interfaces)**: Declaraciones de métodos que la infraestructura debe implementar (por ejemplo, repositorios).  
+- **Adaptadores (Infraestructura)**: Implementaciones concretas (p. ej., repositorios TypeORM y controladores HTTP).
 
-```bash
-# unit tests
-$ pnpm run test
+Con esto, se facilita la aplicación de **principios SOLID** (como Inversión de Dependencias, Responsabilidad Única) al inyectar interfaces en lugar de depender directamente de la base de datos u otros detalles de implementación.
 
-# e2e tests
-$ pnpm run test:e2e
+---
 
-# test coverage
-$ pnpm run test:cov
-```
+## Estructura General
 
-## Deployment
+├── src  
+│   ├── modules  
+│   │   ├── users  
+│   │   ├── roles  
+│   │   ├── permissions  
+│   │   ├── projects  
+│   │   ├── organizational_units  
+│   │   └── transfers  
+│   ├── main.ts  
+│   └── app.module.ts  
+├── package.json  
+├── tsconfig.json  
+├── .env  
+└── README.md  
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- **modules/roles**, **modules/permissions**, etc.: Cada una con su propia entidad, repositorio, servicio y controlador.  
+- **modules/transfers**: Contiene todo lo referente a la gestión de **Transfer**: DTOs, entidad, repositorio, servicio y controlador, junto con validaciones para proyectos, unidades organizativas y usuarios.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+---
 
-```bash
-$ pnpm install -g mau
-$ mau deploy
-```
+## Despliegue y Ejecución
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+1. **Clonar el Repositorio**  
+git clone https://github.com/tu-usuario/tu-repo.git  
+cd tu-repo  
 
-## Resources
+2. **Instalar Dependencias**  
+pnpm install  
 
-Check out a few resources that may come in handy when working with NestJS:
+3. **Configurar Variables de Entorno**  
+Crear un archivo `.env` con parámetros como:  
+DB_HOST=localhost  
+DB_PORT=5432  
+DB_USER=postgres  
+DB_PASSWORD=password  
+DB_NAME=vehicular_cms  
+JWT_SECRET=una_clave_secreta  
+PORT=3000  
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+4. **Arrancar la Aplicación**  
+npm run start:dev  
 
-## Support
+La app estará disponible en `http://localhost:3000`.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+5. **Despliegue en Render**  
+- Crear un servicio en Render (plan Hobby).  
+- Configurar las **variables de entorno** en el panel de Render.  
+- Conectar el repositorio de GitHub.  
+- Al hacer push, Render construirá e iniciará la aplicación.
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Uso de la API
 
-## License
+### Endpoints Principales
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- **Auth**  
+- `POST /auth/login`: Autentica al usuario.  
+- `GET /auth/profile`: Muestra el perfil del usuario con roles y permisos (requiere JWT).
+
+- **Transfers**  
+- `GET /transfers`: Lista transferencias filtradas por proyecto y unidad organizativa del usuario.  
+- `POST /transfers`: Crea una nueva transferencia validando `projectId` y `organizationalUnitId`.  
+- `PUT /transfers/:id`: Actualiza una transferencia existente (requiere tener acceso a ese proyecto/unidad).  
+- `DELETE /transfers/:id`: Elimina solo si el usuario tiene permisos y pertenece a esa unidad organizativa.
+
+### Seguridad y Roles
+
+- Se puede asignar a cada usuario **Roles** que contienen **Permisos** (por ejemplo, `view_transfers`, `edit_transfers`), y se valida antes de cada operación.  
+- Cada **Unidad Organizativa** y **Proyecto** se asocian al usuario, restringiendo el **alcance** de sus acciones.
+
+---
+
+## Buenas Prácticas y Funcionalidades Opcionales
+
+- **Variables de entorno** para credenciales y claves secretas.  
+- **Helmet** para añadir cabeceras de seguridad HTTP.  
+- **Cookies seguras** con `httpOnly` y `secure` para producción.  
+- **Redis** como caché.  
+- **Cron Jobs** o **Background Workers** para tareas programadas (opcional).
+
+---
+
+## Conclusión
+
+Este proyecto **cumple** con los requisitos de un **CRUD de Transferencias** con **roles**, **permisos** y **unidades organizativas**, implementando **buenas prácticas** de NestJS, **arquitectura hexagonal** y **principios SOLID**. Se prioriza el **desacoplamiento**, la **escalabilidad** y la **seguridad** a través de módulos separados, DTOs para validación, inyección de dependencias y uso de JWT para la autenticación. Además, se facilita la extensibilidad para futuras mejoras, como la integración de un caché Redis, la programación de tareas y la configuración de otras medidas de seguridad en producción.
