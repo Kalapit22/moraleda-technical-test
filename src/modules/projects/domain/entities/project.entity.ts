@@ -18,10 +18,10 @@ export class Project {
 
 
   @ManyToMany(() => User, user => user.project)
-  users: User[];
+  user: User;
  
   @OneToMany(() => OrganizationalUnit, organizationalUnit => organizationalUnit.project)
-  organizationalUnit: OrganizationalUnit[]
+  organizationalUnit: OrganizationalUnit;
 
     
 

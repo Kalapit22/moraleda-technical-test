@@ -15,11 +15,11 @@ export class ProjectRepository implements IProjectRepository {
   ) {}
 
   async findById(id: string): Promise<Project | null> {
-    return this.repository.findOne({ where: { id }, relations: ['organizational_units'] });
+    return this.repository.findOne({ where: { id }});
   }
 
   async findAll(): Promise<Project[]> {
-    return this.repository.find({ relations: ['organizational_units'] });
+    return this.repository.find();
   }
 
   async create(createProjectDto: CreateProjectDto): Promise<Project> {

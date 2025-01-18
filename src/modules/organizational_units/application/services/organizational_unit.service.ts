@@ -34,11 +34,30 @@ export class OrganizationalUnitService {
     }
 
     public async create(createDto: CreateOrganizationalUnitDto): Promise<OrganizationalUnit> {
-        //await this.validateIfUserAndProjectExist(createDto.userId, createDto.projectId);
+
+        const userExists = await this.checkIfUserExists(createDto.userId);
+        if (!userExists) {
+            throw new NotFoundException(`User with id ${createDto.userId} not found`);
+        }
+
+        const projectExists = await this.checkIfProjectExists(createDto.projectId);
+        if (!projectExists) {
+            throw new NotFoundException(`Project with id ${createDto.projectId} not found`);
+        }
+        
         return this.organizationalUnitRepository.create(createDto);
     }
 
     public async update(id: string, updateDto: UpdateOrganizationalUnitDto): Promise<OrganizationalUnit> {
+        const userExists = await this.checkIfUserExists(updateDto.userId);
+        if (!userExists) {
+            throw new NotFoundException(`User with id ${updateDto.userId} not found`);
+        }
+        const projectExists = await this.checkIfProjectExists(updateDto.projectId);
+        if (!projectExists) {
+            throw new NotFoundException(`Project with id ${updateDto.projectId} not found`);
+        }
+
         return this.organizationalUnitRepository.update(id, updateDto);
     }
 
@@ -47,16 +66,12 @@ export class OrganizationalUnitService {
     }
 
 
-    validateIfUserAndProjectExist = async (userId: string, projectId: string) => {
-        const user = await this.userRepository.findById(userId);
-        if (!user) {
-            throw new NotFoundException(`User with id ${userId} not found`);
-        }
+    private checkIfUserExists(userId: string) {
+        return this.userRepository.findById(userId);
+    }
 
-        const project = await this.projectRepository.findById(projectId);
-        if (!project) {
-            throw new NotFoundException(`Project with id ${projectId} not found`);
-        }
+    private checkIfProjectExists(projectId: string) {
+        return this.projectRepository.findById(projectId);
     }
 
 }

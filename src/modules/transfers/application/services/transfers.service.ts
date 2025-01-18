@@ -22,7 +22,6 @@ export class TransferService {
   }
 
   public async create(createTransferDto: CreateTransferDto): Promise<Transfer> {
-    // Potentially add domain checks here (e.g. user can create in that project?)
     return this.transferRepository.create(createTransferDto);
   }
 

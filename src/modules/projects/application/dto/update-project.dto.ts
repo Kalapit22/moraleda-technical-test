@@ -11,4 +11,13 @@ export class UpdateProjectDto {
   @IsOptional()
   @ApiProperty({ description: 'Description of the project (optional)' })
   description?: string;
+
+
+  @IsString()
+  @ApiProperty()
+  userId:string;
+
+  @IsString()
+  @ApiProperty()
+  organizationalUnitId:string;
 }

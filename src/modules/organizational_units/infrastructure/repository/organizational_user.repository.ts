@@ -16,11 +16,11 @@ export class OrganizationalUnitRepository implements IOrganizationalUnitReposito
   ) {}
 
   async findById(id: string): Promise<OrganizationalUnit | null> {
-    return this.repository.findOne({ where: { id }, relations: ['project', 'users'] });
+    return this.repository.findOne({ where: { id }, relations: ['project', 'user'] });
   }
 
   async findAll(): Promise<OrganizationalUnit[]> {
-    return this.repository.find({ relations: ['project', 'users'] });
+    return this.repository.find({ relations: ['project', 'user'] });
   }
 
   async create(createDto: CreateOrganizationalUnitDto): Promise<OrganizationalUnit> {

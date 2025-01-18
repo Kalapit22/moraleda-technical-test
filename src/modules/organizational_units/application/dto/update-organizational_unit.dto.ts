@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsOptional,
   IsString,
@@ -7,10 +7,8 @@ import {
 } from 'class-validator';
 
 export class UpdateOrganizationalUnitDto {
-  @ApiPropertyOptional({
-    description: 'Updated name of the organizational unit',
-    example: 'Finance and Accounting',
-  })
+  
+  @ApiProperty()
   @IsOptional()
   @IsString()
   name?: string;
@@ -23,13 +21,8 @@ export class UpdateOrganizationalUnitDto {
   @IsUUID()
   projectId?: string;
 
-  @ApiPropertyOptional({
-    description: 'Array of user IDs to associate or re-associate with this OU',
-    type: [String],
-    example: ['12dfdfc6-6a80-4f5b-a0d5-123456789abc'],
-  })
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsArray()
-  @IsUUID(undefined, { each: true })
-  userIds?: string[];
+  @IsUUID(undefined)
+  userId?: string;
 }

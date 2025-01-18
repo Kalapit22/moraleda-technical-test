@@ -26,7 +26,7 @@ export class User{
     @JoinTable()
     organizationalUnit: OrganizationalUnit[]
 
-    @ManyToMany(() => Project, project => project.users)
+    @ManyToMany(() => Project, project => project.user)
     @JoinTable()
     project: Project[]
 
