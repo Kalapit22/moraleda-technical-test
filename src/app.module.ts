@@ -9,21 +9,35 @@ import { ProjectModule } from './modules/projects/project.module';
 import { OrganizationalUnitModule } from './modules/organizational_units/organizational_unit.module';
 import { VehicleModule } from './modules/vehicles/vehicle.module';
 import { TransferModule } from './modules/transfers/transfer.module';
-import  {ConfigModule} from '@nestjs/config'
+import  {ConfigModule, ConfigService} from '@nestjs/config'
 import { AuthModule } from './modules/auth/auth.module';
+import * as Joi from 'joi';
 @Module({
   imports: [
-    ConfigModule.forRoot({isGlobal:true}),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5433,
-      username: 'postgres',
-      password: "Kalapit22*",
-      database: 'postgres',
-      autoLoadEntities:true,
-      synchronize:true
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: Joi.object({
+        DB_HOST: Joi.string().required(),
+        DB_PORT: Joi.number().required(),
+        DB_USERNAME: Joi.string().required(),
+        DB_PASSWORD: Joi.string().required(),
+        DB_DATABASE: Joi.string().required(),
+      }),
     }),
+    TypeOrmModule.forRootAsync(
+      {
+        useFactory: (configService:ConfigService) => ({
+          type: 'postgres',
+          host: configService.getOrThrow('DB_HOST'),
+          port:  configService.getOrThrow('DB_PORT'),
+          username: configService.getOrThrow('DB_USERNAME'),
+          password:  configService.getOrThrow('DB_PASSWORD'),
+          database: configService.getOrThrow('DB_DATABASE'),
+          synchronize: true,
+        }),
+        inject: [ConfigService]
+      }
+    ),
     AuthModule,
     UserModule,
     RoleModule,
